@@ -2,7 +2,9 @@ from typing_extensions import Self
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sqlalchemy import null, values
+import warnings
+
+warnings.filterwarnings('ignore')
 
 # read data from csv file
 df = pd.read_csv('results.csv')
@@ -105,15 +107,10 @@ print(no_away_game)
 print("All goals scored in international football matches: ",
       df['total_goals'].values.sum())
 
+matches_num = df['home_team'].value_counts() + df['away_team'].value_counts()
 
-print(df.iloc[0]['home_team'])
-
-ser = df['home_team'].value_counts() + df['away_team'].value_counts()
-
-print(ser.index)
-
-countries_df = pd.DataFrame({'Country': ser.index,
-                             'Matches': ser.values.astype(int)})
+countries_df = pd.DataFrame({'Country': matches_num.index,
+                             'Matches': matches_num.values.astype(int)})
 
 won_matches_by_country = df['winner'].value_counts()
 lost_matches_by_country = df['loser'].value_counts()
@@ -140,7 +137,38 @@ countries_df['Draws'] = countries_df['Matches'] - \
 countries_df['Percent of won games'] = countries_df['Wins'] * \
     100/countries_df['Matches']
 
+countries_df['Percent of lost games'] = countries_df['Losses'] * \
+    100/countries_df['Matches']
+
+countries_df['Percent of tied games'] = countries_df['Draws'] * \
+    100/countries_df['Matches']
 
 print(countries_df)
 
-print(df[df['home_team'] == 'England']['home_score'].sum())
+top_winning_countries = countries_df.groupby('Country').sum()[['Matches', 'Percent of won games']].sort_values(
+    by=['Percent of won games'], ascending=False).query('Matches >= 100').head(10)
+
+top_drawing_countries = countries_df.groupby('Country').sum()[['Matches', 'Percent of tied games']].sort_values(
+    by=['Percent of tied games'], ascending=False).query('Matches >= 100').head(10)
+
+top_loosing_countries = countries_df.groupby('Country').sum()[['Matches', 'Percent of lost games']].sort_values(
+    by=['Percent of lost games'], ascending=False).query('Matches >= 100').head(10)
+
+sns.barplot(x=top_winning_countries.index,
+            y=top_winning_countries['Percent of won games'])
+plt.title('Countries with highest winning ratio with at least 100 matches')
+plt.show()
+
+sns.barplot(x=top_drawing_countries.index,
+            y=top_drawing_countries['Percent of tied games'])
+plt.title('Countries with highest drawing ratio with at least 100 matches')
+plt.show()
+
+sns.barplot(x=top_loosing_countries.index,
+            y=top_loosing_countries['Percent of lost games'])
+plt.title('Countries with highest loosing ratio with at least 100 matches')
+plt.show()
+
+world_cup_df = df.loc[df['tournament'] == 'FIFA World Cup']
+
+print(world_cup_df)
