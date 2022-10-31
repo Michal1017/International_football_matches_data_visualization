@@ -171,4 +171,16 @@ plt.show()
 
 world_cup_df = df.loc[df['tournament'] == 'FIFA World Cup']
 
-print(world_cup_df)
+best_WC_winners = world_cup_df['winner'].value_counts().head(10)
+
+best_WC_losers = world_cup_df['loser'].value_counts().head(10)
+
+sns.barplot(x=best_WC_winners.index,
+            y=best_WC_winners)
+plt.title('Countries with the biggest number of wins on World Cup')
+plt.show()
+
+sns.barplot(x=best_WC_losers.index,
+            y=best_WC_losers)
+plt.title('Countries with the biggest number of lost matches on World Cup')
+plt.show()
